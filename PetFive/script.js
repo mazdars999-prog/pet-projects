@@ -1,14 +1,45 @@
-document.addEventListener("DOMContentLoaded", function () {
-  // ======================================================
-  // 1. HERO / sectionOne (слайдер + dots)
-  // ======================================================
+document.addEventListener("DOMContentLoaded", () => {
+  "use strict";
 
-  const heroImg = document.getElementById("sliderImg");
-  const heroNext = document.querySelector(".hero-next");
-  const heroPrev = document.querySelector(".hero-prev");
-  const heroDots = document.querySelectorAll(".hero-dot");
+  const SELECTORS = {
+    heroImage: "#sliderImg",
+    heroNext: ".hero-next",
+    heroPrev: ".hero-prev",
+    heroDots: ".hero-dot",
 
-  const heroImages = [
+    promoTrack: ".promo-track",
+    promoNext: ".promo-next",
+    promoPrev: ".promo-prev",
+
+    commandTrack: ".command-track",
+    commandCards: ".command-track .specialist-card",
+    commandNext: ".command-next",
+    commandPrev: ".command-prev",
+
+    equipmentTrack: ".equipment-track",
+    equipmentCards: ".equipment-track .specialist-card",
+    equipmentNext: ".equipment-next",
+    equipmentPrev: ".equipment-prev",
+
+    reviewsTrack: ".reviews-track",
+    reviewsCards: ".review-card",
+    reviewsNext: ".reviews-next",
+    reviewsPrev: ".reviews-prev",
+    reviewsDots: ".reviews-dots",
+    reviewsTabs: ".reviews-tab",
+
+    resultsTrack: ".results-track",
+    resultsSlides: ".result-slide",
+    resultsNext: ".result-next",
+    resultsPrev: ".result-prev",
+
+    burger: ".burger",
+    navbar: ".navbar",
+    servicesToggle: ".services-toggle",
+    servicesMenu: "#servicesMenu",
+  };
+
+  const HERO_IMAGES = [
     "assets/img/slaider/slideOne.png",
     "assets/img/slaider/slideTwo.png",
     "assets/img/slaider/slidethree.png",
@@ -16,312 +47,369 @@ document.addEventListener("DOMContentLoaded", function () {
     "assets/img/slaider/slidefive.png",
   ];
 
-  let heroIndex = 0;
+  const BREAKPOINTS = {
+    mobileSlider: 1000,
+    desktopMenu: 920,
+  };
 
-  function updateHero() {
-    if (!heroImg) return;
+  const $ = (selector, scope = document) => scope.querySelector(selector);
+  const $$ = (selector, scope = document) =>
+    Array.from(scope.querySelectorAll(selector));
 
-    heroImg.src = heroImages[heroIndex];
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  }
 
-    heroDots.forEach((dot, i) => {
-      dot.classList.toggle("active", i === heroIndex);
+  function debounce(callback, delay = 100) {
+    let timeoutId = null;
+
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => callback(...args), delay);
+    };
+  }
+
+  function getGap(element) {
+    if (!element) return 0;
+
+    const styles = window.getComputedStyle(element);
+    return parseInt(styles.columnGap || styles.gap, 10) || 0;
+  }
+
+  function setTranslateX(element, value) {
+    if (!element) return;
+    element.style.transform = `translateX(-${value}px)`;
+  }
+
+  function createHeroSlider() {
+    const image = $(SELECTORS.heroImage);
+    const nextButton = $(SELECTORS.heroNext);
+    const prevButton = $(SELECTORS.heroPrev);
+    const dots = $$(SELECTORS.heroDots);
+
+    if (!image || !HERO_IMAGES.length) return;
+
+    let currentIndex = 0;
+
+    const render = () => {
+      image.src = HERO_IMAGES[currentIndex];
+
+      dots.forEach((dot, index) => {
+        dot.classList.toggle("active", index === currentIndex);
+      });
+    };
+
+    const goTo = (index) => {
+      currentIndex = (index + HERO_IMAGES.length) % HERO_IMAGES.length;
+      render();
+    };
+
+    nextButton?.addEventListener("click", () => goTo(currentIndex + 1));
+    prevButton?.addEventListener("click", () => goTo(currentIndex - 1));
+
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", () => goTo(index));
+    });
+
+    render();
+  }
+
+  function createBasicTrackSlider({
+    trackSelector,
+    nextSelector,
+    prevSelector,
+    step,
+    getMaxOffset,
+  }) {
+    const track = $(trackSelector);
+    const nextButton = $(nextSelector);
+    const prevButton = $(prevSelector);
+
+    if (!track) return;
+
+    let offset = 0;
+
+    const render = () => {
+      const maxOffset = Math.max(0, getMaxOffset());
+      offset = clamp(offset, 0, maxOffset);
+      setTranslateX(track, offset);
+    };
+
+    nextButton?.addEventListener("click", () => {
+      offset += step();
+      render();
+    });
+
+    prevButton?.addEventListener("click", () => {
+      offset -= step();
+      render();
+    });
+
+    window.addEventListener("resize", debounce(render, 120));
+    render();
+  }
+
+  function createCardsSlider({
+    trackSelector,
+    cardsSelector,
+    nextSelector,
+    prevSelector,
+    getVisibleCards,
+  }) {
+    const track = $(trackSelector);
+    const nextButton = $(nextSelector);
+    const prevButton = $(prevSelector);
+
+    if (!track) return;
+
+    let currentIndex = 0;
+
+    const getCards = () => $$(cardsSelector);
+    const getStep = () => {
+      const cards = getCards();
+      if (!cards.length) return 0;
+      return cards[0].offsetWidth + getGap(track);
+    };
+
+    const render = () => {
+      const cards = getCards();
+      const visibleCards = getVisibleCards();
+      const maxIndex = Math.max(0, cards.length - visibleCards);
+
+      currentIndex = clamp(currentIndex, 0, maxIndex);
+      setTranslateX(track, currentIndex * getStep());
+    };
+
+    nextButton?.addEventListener("click", () => {
+      const maxIndex = Math.max(0, getCards().length - getVisibleCards());
+      if (currentIndex < maxIndex) {
+        currentIndex += 1;
+        render();
+      }
+    });
+
+    prevButton?.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        render();
+      }
+    });
+
+    window.addEventListener("resize", debounce(render, 120));
+    render();
+  }
+
+  function createResultsSlider() {
+    createBasicTrackSlider({
+      trackSelector: SELECTORS.resultsTrack,
+      nextSelector: SELECTORS.resultsNext,
+      prevSelector: SELECTORS.resultsPrev,
+      step: () => 220,
+      getMaxOffset: () => {
+        const slides = $$(SELECTORS.resultsSlides);
+        const visibleSlides = 4;
+        const slideWidth = 220;
+
+        return Math.max(0, (slides.length - visibleSlides) * slideWidth);
+      },
     });
   }
 
-  heroNext?.addEventListener("click", () => {
-    heroIndex = (heroIndex + 1) % heroImages.length;
-    updateHero();
-  });
+  function createPromoSlider() {
+    createBasicTrackSlider({
+      trackSelector: SELECTORS.promoTrack,
+      nextSelector: SELECTORS.promoNext,
+      prevSelector: SELECTORS.promoPrev,
+      step: () => 420,
+      getMaxOffset: () => {
+        const track = $(SELECTORS.promoTrack);
+        if (!track || !track.parentElement) return 0;
 
-  heroPrev?.addEventListener("click", () => {
-    heroIndex = (heroIndex - 1 + heroImages.length) % heroImages.length;
-    updateHero();
-  });
-
-  heroDots.forEach((dot, i) => {
-    dot.addEventListener("click", () => {
-      heroIndex = i;
-      updateHero();
+        const maxOffset = track.scrollWidth - track.parentElement.clientWidth;
+        return Math.max(0, maxOffset);
+      },
     });
-  });
+  }
 
-  updateHero();
+  function createResponsiveCardsSliders() {
+    createCardsSlider({
+      trackSelector: SELECTORS.commandTrack,
+      cardsSelector: SELECTORS.commandCards,
+      nextSelector: SELECTORS.commandNext,
+      prevSelector: SELECTORS.commandPrev,
+      getVisibleCards: () =>
+        window.innerWidth <= BREAKPOINTS.mobileSlider ? 2 : 4,
+    });
 
-  // ======================================================
-  // 2. PROMO SECTION
-  // ======================================================
+    createCardsSlider({
+      trackSelector: SELECTORS.equipmentTrack,
+      cardsSelector: SELECTORS.equipmentCards,
+      nextSelector: SELECTORS.equipmentNext,
+      prevSelector: SELECTORS.equipmentPrev,
+      getVisibleCards: () =>
+        window.innerWidth <= BREAKPOINTS.mobileSlider ? 2 : 4,
+    });
+  }
 
-  const promoTrack = document.querySelector(".promo-track");
-  const promoNext = document.querySelector(".promo-next");
-  const promoPrev = document.querySelector(".promo-prev");
+  function createReviewsSlider() {
+    const track = $(SELECTORS.reviewsTrack);
+    const nextButton = $(SELECTORS.reviewsNext);
+    const prevButton = $(SELECTORS.reviewsPrev);
+    const dotsContainer = $(SELECTORS.reviewsDots);
+    const tabs = $$(SELECTORS.reviewsTabs);
 
-  let promoPosition = 0;
-  const promoSlideWidth = 420;
+    if (!track || !dotsContainer) return;
 
-  promoNext?.addEventListener("click", () => {
-    promoPosition += promoSlideWidth;
-    promoTrack.style.transform = `translateX(-${promoPosition}px)`;
-  });
+    let currentIndex = 0;
 
-  promoPrev?.addEventListener("click", () => {
-    promoPosition -= promoSlideWidth;
+    const getAllCards = () => $$(SELECTORS.reviewsCards);
+    const getVisibleCards = () =>
+      getAllCards().filter((card) => card.style.display !== "none");
 
-    if (promoPosition < 0) {
-      promoPosition = 0;
-    }
+    const getCardWidth = () => {
+      const firstVisibleCard = getVisibleCards()[0];
+      if (!firstVisibleCard) return 0;
+      return firstVisibleCard.offsetWidth + getGap(track);
+    };
 
-    promoTrack.style.transform = `translateX(-${promoPosition}px)`;
-  });
+    const renderDots = () => {
+      const visibleCards = getVisibleCards();
 
-  // ======================================================
-  // 3. COMMAND SECTION
-  // ======================================================
+      dotsContainer.innerHTML = "";
 
-  const commandTrack = document.querySelector(".command-track");
-  const commandNext = document.querySelector(".command-next");
-  const commandPrev = document.querySelector(".command-prev");
+      visibleCards.forEach((_, index) => {
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.classList.toggle("active", index === currentIndex);
 
-  let commandPosition = 0;
-  const commandWidth = 320;
+        dot.addEventListener("click", () => {
+          currentIndex = index;
+          render();
+        });
 
-  commandNext?.addEventListener("click", () => {
-    commandPosition += commandWidth;
-    commandTrack.style.transform = `translateX(-${commandPosition}px)`;
-  });
+        dotsContainer.appendChild(dot);
+      });
+    };
 
-  commandPrev?.addEventListener("click", () => {
-    commandPosition -= commandWidth;
+    const render = () => {
+      const visibleCards = getVisibleCards();
+      const maxIndex = Math.max(0, visibleCards.length - 1);
 
-    if (commandPosition < 0) {
-      commandPosition = 0;
-    }
+      currentIndex = clamp(currentIndex, 0, maxIndex);
+      setTranslateX(track, currentIndex * getCardWidth());
 
-    commandTrack.style.transform = `translateX(-${commandPosition}px)`;
-  });
+      const dots = $$(".dot", dotsContainer);
+      dots.forEach((dot, index) => {
+        dot.classList.toggle("active", index === currentIndex);
+      });
+    };
 
-  // ======================================================
-  // 4. EQUIPMENT SECTION
-  // ======================================================
-
-  const equipmentTrack = document.querySelector(".equipment-track");
-  const equipmentNext = document.querySelector(".equipment-next");
-  const equipmentPrev = document.querySelector(".equipment-prev");
-
-  let equipmentPosition = 0;
-  const equipmentWidth = 300;
-
-  equipmentNext?.addEventListener("click", () => {
-    equipmentPosition += equipmentWidth;
-    equipmentTrack.style.transform = `translateX(-${equipmentPosition}px)`;
-  });
-
-  equipmentPrev?.addEventListener("click", () => {
-    equipmentPosition -= equipmentWidth;
-
-    if (equipmentPosition < 0) {
-      equipmentPosition = 0;
-    }
-
-    equipmentTrack.style.transform = `translateX(-${equipmentPosition}px)`;
-  });
-
-  // ======================================================
-  // 5. REVIEWS (стрелки + dots)
-  // ======================================================
-
-  const reviewsTrack = document.querySelector(".reviews-track");
-  const reviewsCards = document.querySelectorAll(".review-card");
-
-  const reviewsNext = document.querySelector(".reviews-next");
-  const reviewsPrev = document.querySelector(".reviews-prev");
-
-  const reviewsDotsContainer = document.querySelector(".reviews-dots");
-
-  let reviewsIndex = 0;
-  const reviewsWidth = 420;
-
-  function createReviewsDots() {
-    if (!reviewsDotsContainer) return;
-
-    reviewsCards.forEach((_, i) => {
-      const dot = document.createElement("span");
-      dot.classList.add("dot");
-
-      dot.addEventListener("click", () => {
-        reviewsIndex = i;
-        moveReviews();
+    const filterCards = (category) => {
+      getAllCards().forEach((card) => {
+        const cardCategory = card.dataset.category;
+        const shouldShow = category === "all" || cardCategory === category;
+        card.style.display = shouldShow ? "block" : "none";
       });
 
-      reviewsDotsContainer.appendChild(dot);
+      currentIndex = 0;
+      renderDots();
+      render();
+    };
+
+    nextButton?.addEventListener("click", () => {
+      const maxIndex = Math.max(0, getVisibleCards().length - 1);
+      if (currentIndex < maxIndex) {
+        currentIndex += 1;
+        render();
+      }
     });
-  }
 
-  function updateReviewsDots() {
-    const dots = reviewsDotsContainer.querySelectorAll(".dot");
-
-    dots.forEach((dot, i) => {
-      dot.classList.toggle("active", i === reviewsIndex);
+    prevButton?.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        render();
+      }
     });
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const category = tab.dataset.tab || "all";
+
+        tabs.forEach((button) => button.classList.remove("active"));
+        tab.classList.add("active");
+
+        filterCards(category);
+      });
+    });
+
+    window.addEventListener("resize", debounce(render, 120));
+
+    renderDots();
+    render();
   }
 
-  function moveReviews() {
-    reviewsTrack.style.transform = `translateX(-${
-      reviewsIndex * reviewsWidth
-    }px)`;
-    updateReviewsDots();
-  }
+  function createHeaderMenu() {
+    const burger = $(SELECTORS.burger);
+    const navbar = $(SELECTORS.navbar);
+    const servicesToggle = $(SELECTORS.servicesToggle);
+    const servicesMenu = $(SELECTORS.servicesMenu);
 
-  reviewsNext?.addEventListener("click", () => {
-    if (reviewsIndex < reviewsCards.length - 1) {
-      reviewsIndex++;
-      moveReviews();
-    }
-  });
-
-  reviewsPrev?.addEventListener("click", () => {
-    if (reviewsIndex > 0) {
-      reviewsIndex--;
-      moveReviews();
-    }
-  });
-
-  createReviewsDots();
-  updateReviewsDots();
-
-  // ======================================================
-  // 6. RESULTS
-  // ======================================================
-
-  const resultsTrack = document.querySelector(".results-track");
-  const resultsSlides = document.querySelectorAll(".result-slide");
-
-  const resultsNext = document.querySelector(".result-next");
-  const resultsPrev = document.querySelector(".result-prev");
-
-  let resultsPosition = 0;
-
-  const resultWidth = 220;
-  const visibleSlides = 4;
-
-  const maxPosition = (resultsSlides.length - visibleSlides) * resultWidth;
-
-  resultsNext?.addEventListener("click", () => {
-    resultsPosition += resultWidth;
-
-    if (resultsPosition > maxPosition) {
-      resultsPosition = maxPosition;
-    }
-
-    resultsTrack.style.transform = `translateX(-${resultsPosition}px)`;
-  });
-
-  resultsPrev?.addEventListener("click", () => {
-    resultsPosition -= resultWidth;
-
-    if (resultsPosition < 0) {
-      resultsPosition = 0;
-    }
-
-    resultsTrack.style.transform = `translateX(-${resultsPosition}px)`;
-  });
-  const burger = document.querySelector(".burger");
-  const navbar = document.querySelector(".navbar");
-  const servicesBtn = document.querySelector(".services-toggle");
-  const servicesMenu = document.getElementById("servicesMenu");
-
-  burger?.addEventListener("click", () => {
-    burger.classList.toggle("active");
-    navbar.classList.toggle("active");
-  });
-
-  servicesBtn?.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    servicesMenu?.classList.toggle("active");
-    servicesBtn.classList.toggle("rotate");
-  });
-
-  document.addEventListener("click", (e) => {
-    if (
-      servicesMenu &&
-      servicesBtn &&
-      !servicesMenu.contains(e.target) &&
-      !servicesBtn.contains(e.target)
-    ) {
-      servicesMenu.classList.remove("active");
-      servicesBtn.classList.remove("rotate");
-    }
-  });
-
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 920) {
+    const closeMobileMenu = () => {
       burger?.classList.remove("active");
       navbar?.classList.remove("active");
-    }
-  });
-  // ======================================================
-  // 5.1 REVIEWS TABS
-  // ======================================================
+    };
 
-  const reviewsTabs = document.querySelectorAll(".reviews-tab");
-  const reviewCards = document.querySelectorAll(".review-card");
+    const closeServicesMenu = () => {
+      servicesMenu?.classList.remove("active");
+      servicesToggle?.classList.remove("rotate");
+      servicesToggle?.setAttribute("aria-expanded", "false");
+    };
 
-  reviewsTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const category = tab.dataset.tab;
+    burger?.addEventListener("click", () => {
+      const isActive = burger.classList.toggle("active");
+      navbar?.classList.toggle("active", isActive);
+      burger.setAttribute("aria-expanded", String(isActive));
+    });
 
-      reviewsTabs.forEach((btn) => btn.classList.remove("active"));
-      tab.classList.add("active");
+    servicesToggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-      reviewCards.forEach((card) => {
-        const cardCategory = card.dataset.category;
+      const willOpen = !servicesMenu?.classList.contains("active");
 
-        if (category === "all" || category === cardCategory) {
-          card.style.display = "block";
-        } else {
-          card.style.display = "none";
-        }
-      });
+      servicesMenu?.classList.toggle("active", willOpen);
+      servicesToggle.classList.toggle("rotate", willOpen);
+      servicesToggle.setAttribute("aria-expanded", String(willOpen));
+    });
 
-      // после фильтрации сбрасываем слайдер в начало
-      reviewsIndex = 0;
-      if (reviewsTrack) {
-        reviewsTrack.style.transform = `translateX(0px)`;
-      }
+    document.addEventListener("click", (event) => {
+      const target = event.target;
 
-      // обновляем точки
-      if (reviewsDotsContainer) {
-        reviewsDotsContainer.innerHTML = "";
-
-        const visibleCards = Array.from(reviewCards).filter(
-          (card) => card.style.display !== "none",
-        );
-
-        visibleCards.forEach((_, i) => {
-          const dot = document.createElement("span");
-          dot.classList.add("dot");
-
-          if (i === 0) {
-            dot.classList.add("active");
-          }
-
-          dot.addEventListener("click", () => {
-            reviewsIndex = i;
-            reviewsTrack.style.transform = `translateX(-${
-              reviewsIndex * reviewsWidth
-            }px)`;
-
-            reviewsDotsContainer
-              .querySelectorAll(".dot")
-              .forEach((d, index) => {
-                d.classList.toggle("active", index === reviewsIndex);
-              });
-          });
-
-          reviewsDotsContainer.appendChild(dot);
-        });
+      if (
+        servicesMenu &&
+        servicesToggle &&
+        target instanceof Node &&
+        !servicesMenu.contains(target) &&
+        !servicesToggle.contains(target)
+      ) {
+        closeServicesMenu();
       }
     });
-  });
+
+    window.addEventListener(
+      "resize",
+      debounce(() => {
+        if (window.innerWidth > BREAKPOINTS.desktopMenu) {
+          closeMobileMenu();
+        }
+      }, 120),
+    );
+  }
+
+  createHeroSlider();
+  createPromoSlider();
+  createResponsiveCardsSliders();
+  createReviewsSlider();
+  createResultsSlider();
+  createHeaderMenu();
 });
