@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>APP</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <video class="bg-video" autoplay muted loop playsinline>
+      <source src="assets/fon.mp4" type="video/mp4" />
+    </video>
+
+    <div class="page">
+      <!-- Первый экран -->
+      <section class="screen main-screen">
+        <nav class="navbar">
+          <div class="nav-badge">DATING APP</div>
+
+          <div class="nav-logo">APP</div>
+
+          <div class="nav-downloads">
+            <div class="nav-top-links">
+              <a href="#"><img src="assets/icons/romb.png" alt="" />Compo...</a>
+              <a href="#"><img src="assets/icons/romb.png" alt="" />Compo...</a>
+            </div>
+
+            <div class="nav-stores">
+              <a href="https://www.apple.com/app-store/" class="store-btn">
+                <img src="assets/icons/apple.svg" alt="" />
+                App Store
+              </a>
+
+              <a href="http://googleplay.com/" class="store-btn">
+                <img src="assets/icons/google.svg" alt="" />
+                Google Play
+              </a>
+
+              <a href="https://appgallery.huawei.ru/Featured" class="store-btn">
+                <img src="assets/icons/huawei.svg" alt="" />
+                AppGallery
+              </a>
+
+              <a href="https://www.rustore.ru/" class="store-btn">
+                <img src="assets/icons/rustore.svg" alt="" />
+                RuStore
+              </a>
+            </div>
+          </div>
+        </nav>
+
+        <div class="hero">
+          <button class="main-signup">SIGN UP</button>
+        </div>
+        <!-- MODAL -->
+        <div class="signup-modal" id="signupModal">
+          <div class="signup-modal__overlay" id="signupOverlay"></div>
+
+          <div class="signup-modal__content">
+            <button
+              class="signup-modal__close"
+              id="signupClose"
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+
+            <h2 class="signup-modal__title">SIGN UP</h2>
+
+            <div class="signup-modal__buttons">
+              <a href="#" class="signup-modal__btn">
+                <img src="assets/icons/apple.svg" alt="" />
+                с Apple
+              </a>
+
+              <a href="#" class="signup-modal__btn">
+                <img src="assets/icons/google.svg" alt="" />
+                с Google
+              </a>
+
+              <a href="#" class="signup-modal__btn">
+                <img src="assets/icons/huawei.svg" alt="" />
+                с Huawei
+              </a>
+            </div>
+
+            <div class="signup-modal__text">
+              <p>Тебе должно быть больше 18 лет!</p>
+              <p>
+                Продолжая, ты соглашаешься с
+                <a href="#">Условиями и положениями</a>
+                и
+                <a href="#">Политикой конфиденциальности</a>
+              </p>
+            </div>
+
+            <label class="signup-modal__checkbox">
+              <input type="checkbox" />
+              <span>Присылайте мне новости и класторы!</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Второй экран -->
+      <section class="screen footer-screen">
+        <footer class="footer">
+          <!-- Верхняя навигация -->
+          <div class="footer-top-nav">
+            <div class="footer-top-nav-inner">
+              <a href="#">Main</a>
+              <a href="#">About</a>
+              <a href="#">FAQ</a>
+              <a href="#">Support</a>
+            </div>
+          </div>
+
+          <!-- Основной футер -->
+          <div class="footer-container">
+            <!-- LEFT -->
+            <div class="footer-left">
+              <div class="footer-title">Скачать приложение</div>
+
+              <div class="footer-stores">
+                <!-- 🔥 ВСТАВЬ СЮДА СВОИ КНОПКИ -->
+                <!-- пример -->
+                <a href="https://www.apple.com/app-store/" class="store-btn">
+                  <img src="assets/icons/apple.svg" alt="" />
+                  App Store
+                </a>
+
+                <a href="http://googleplay.com/" class="store-btn">
+                  <img src="assets/icons/google.svg" alt="" />
+                  Google Play
+                </a>
+                <a
+                  href="https://appgallery.huawei.ru/Featured"
+                  class="store-btn"
+                >
+                  <img src="assets/icons/huawei.svg" alt="" />
+                  AppGallery
+                </a>
+                <a href="https://www.rustore.ru/" class="store-btn">
+                  <img src="assets/icons/rustore.svg" alt="" />
+                  RuStore
+                </a>
+              </div>
+
+              <div class="footer-bottom-left">
+                <div class="footer-socials">
+                  <img src="assets/icons/music.jpg" alt="" />
+                  <img src="assets/icons/mail.jpg" alt="" />
+                </div>
+
+                <div class="footer-copy">
+                  © 2025 PURE. Online Classified AG, Switzerland
+                </div>
+              </div>
+            </div>
+
+            <!-- CENTER -->
+            <div class="footer-column">
+              <a href="#">Правила Пьюр-комьюнити</a>
+              <a href="#">Безопасность</a>
+              <a href="#">Условия и положения</a>
+              <a href="#">Политика использования файлов cookie</a>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="footer-column">
+              <a href="#">Политика конфиденциальности</a>
+              <a href="#">FAQ</a>
+              <a href="#">Связаться с нами</a>
+              <a href="#"
+                >Политика конфиденциальности данных о здоровье потребителей</a
+              >
+            </div>
+          </div>
+        </footer>
+      </section>
+    </div>
+  </body>
+</html>
